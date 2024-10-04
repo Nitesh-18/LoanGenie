@@ -1,5 +1,4 @@
 // src/components/VideoHero.jsx
-import { Player } from "@remotion/player";
 import { useSpring, animated } from "react-spring";
 import { useEffect } from "react";
 import "../styles/hero.css"; // Add necessary styles for hero section
