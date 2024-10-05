@@ -9,7 +9,7 @@ const VideoHero = () => {
   const [fadeProps, setFade] = useSpring(() => ({
     opacity: 1,
     transform: "translateY(0)",
-    from: { opacity: 0, transform: "translateY(50px)" },
+    from: { opacity: 1, transform: "translateY(0)" }, // Start with full opacity
     config: { duration: 1000 },
   }));
 
@@ -17,9 +17,9 @@ const VideoHero = () => {
     const handleScroll = () => {
       const offset = window.scrollY;
       if (offset > 100) {
-        setFade({ opacity: 0.7, transform: "translateY(-20px)" });
+        setFade({ opacity: 0.9, transform: "translateY(-10px)" }); // Slight fade effect
       } else {
-        setFade({ opacity: 1, transform: "translateY(0)" });
+        setFade({ opacity: 1, transform: "translateY(0)" }); // Reset when at top
       }
     };
 
@@ -35,7 +35,7 @@ const VideoHero = () => {
           loop
           muted
           playsInline
-          src="/loan-bg.mp4" // Ensure the path is relative to public
+          src={videoUrl} // Ensure the path is relative to public
           className="hero-video"
         />
       </div>

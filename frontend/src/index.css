@@ -13,3 +13,10 @@
 .result {
   @apply mt-4 p-4 border border-gray-200 rounded;
 }
+
+/* Add this to your global styles or index.css */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}

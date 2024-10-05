@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import LoanForm from "./components/LoanForm";
 import Navbar from "./components/Navbar";
 import VideoHero from "./components/VideoHero";
+import LoginSignup from "./components/LoginSignup"; // Import your LoginSignup component
+import { Routes, Route } from "react-router-dom"; // Import Routes and Route
 import { useSpring, animated } from "react-spring";
 
 const App = () => {
@@ -30,10 +32,22 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gray-200">
       <Navbar />
-      <VideoHero />
-      <animated.div style={formFadeProps} className="container mx-auto py-12">
-        <LoanForm onSubmit={handleFormSubmit} />
-      </animated.div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <animated.div
+              style={formFadeProps} // Apply your animated styles here
+              className="w-full py-12" // Use w-full for full width
+            >
+              <VideoHero />
+              <LoanForm onSubmit={handleFormSubmit} />
+            </animated.div>
+          }
+        />
+        <Route path="/login" element={<LoginSignup />} /> {/* Login route */}
+        {/* Add other routes as needed */}
+      </Routes>
     </div>
   );
 };

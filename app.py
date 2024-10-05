@@ -1,9 +1,20 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect, url_for
 from pymongo import MongoClient
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from dotenv import load_dotenv
+import os
+from authlib.integrations.flask_client import OAuth
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -13,8 +24,28 @@ db = client.loan_db
 customers = db.customers
 users = db.users  # New collection for users
 
-# JWT configuration
-app.config["JWT_SECRET_KEY"] = "niteshistheplayer"  # Change this!
+# JWT configuration - loaded from .env
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+
+# Google OAuth configuration
+app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID")
+app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET")
+app.config["SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+
+oauth = OAuth(app)
+google = oauth.register(
+    name="google",
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    access_token_url="https://accounts.google.com/o/oauth2/token",
+    authorize_url="https://accounts.google.com/o/oauth2/auth",
+    authorize_params=None,
+    access_token_params=None,
+    refresh_token_url=None,
+    client_kwargs={"scope": "openid profile email"},
+)
+
+# JWT setup
 jwt = JWTManager(app)
 
 # Flask-Login setup
@@ -35,37 +66,67 @@ def load_user(user_id):
     return None
 
 
-@app.route("/register", methods=["POST"])
-def register():
-    data = request.json
-    hashed_password = generate_password_hash(data["password"], method="sha256")
-    users.insert_one({"username": data["username"], "password": hashed_password})
-    return jsonify({"message": "User registered successfully"}), 201
-
-
-@app.route("/login", methods=["POST"])
+# Google OAuth login route
+@app.route("/login")
 def login():
-    data = request.json
-    user = users.find_one({"username": data["username"]})
-    if user and check_password_hash(user["password"], data["password"]):
-        access_token = create_access_token(identity=str(user["_id"]))
-        return jsonify(access_token=access_token), 200
-    return jsonify({"message": "Invalid credentials"}), 401
+    redirect_uri = url_for("authorize", _external=True)
+    return google.authorize_redirect(redirect_uri)
 
 
-@app.route("/profile", methods=["GET"])
+@app.route("/authorize")
+def authorize():
+    token = google.authorize_access_token()
+    user_info = google.parse_id_token(token)
+
+    user = users.find_one({"email": user_info["email"]})
+
+    # If the user does not exist, create a new user
+    if not user:
+        new_user = {
+            "username": user_info["name"],
+            "email": user_info["email"],
+            "profile_pic": user_info["picture"],
+        }
+        users.insert_one(new_user)
+        user = new_user
+
+    login_user(User(str(user["_id"])))
+    access_token = create_access_token(identity=str(user["_id"]))
+
+    # Redirect to home page after successful login
+    return redirect(url_for("/", token=access_token))
+
+
+# Home route (example)
+@app.route("/")
 @jwt_required()
-def profile():
+def home():
     current_user_id = get_jwt_identity()
     user = users.find_one({"_id": ObjectId(current_user_id)})
-    return jsonify({"username": user["username"]}), 200
+    return (
+        jsonify(
+            {
+                "message": "Welcome to LoanGenie",
+                "username": user["username"],
+                "email": user["email"],
+            }
+        ),
+        200,
+    )
 
 
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"message": "User logged out successfully"}), 200
+
+
+# Other routes like customer management, etc.
 @app.route("/add_customer", methods=["POST"])
 @jwt_required()
 def add_customer():
     customer_data = request.json
-    # Insert customer data into MongoDB
     customers.insert_one(customer_data)
     return jsonify({"message": "Customer added successfully"}), 201
 
@@ -82,46 +143,11 @@ def get_customers():
     return jsonify(customer_list)
 
 
-@app.route("/customer/<id>", methods=["GET"])
-@jwt_required()
-def get_customer(id):
-    customer = customers.find_one({"_id": ObjectId(id)})
-    if customer:
-        customer["_id"] = str(customer["_id"])
-        return jsonify(customer)
-    else:
-        return jsonify({"message": "Customer not found"}), 404
-
-
-@app.route("/update_customer/<id>", methods=["PUT"])
-@jwt_required()
-def update_customer(id):
-    updated_data = request.json
-    result = customers.update_one({"_id": ObjectId(id)}, {"$set": updated_data})
-    if result.matched_count > 0:
-        return jsonify({"message": "Customer updated successfully"})
-    else:
-        return jsonify({"message": "Customer not found"}), 404
-
-
-@app.route("/delete_customer/<id>", methods=["DELETE"])
-@jwt_required()
-def delete_customer(id):
-    result = customers.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count > 0:
-        return jsonify({"message": "Customer deleted successfully"})
-    else:
-        return jsonify({"message": "Customer not found"}), 404
-
-
+# Prediction route (example)
 @app.route("/api/predict", methods=["POST"])
 @jwt_required()
 def predict():
-    # This is where you can integrate your ML model for prediction
     data = request.json
-    # Placeholder for model inference - replace with actual ML code
-    # Use the model to predict the loan approval status based on the input
-    # Return a sample result
     prediction = "Approved" if data["ApplicantIncome"] > 5000 else "Rejected"
     return jsonify({"result": prediction}), 200
 
