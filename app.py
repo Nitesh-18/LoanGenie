@@ -11,12 +11,17 @@ from bson.objectid import ObjectId
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from dotenv import load_dotenv
 import os
-from authlib.integrations.flask_client import OAuth
+import joblib
+import pandas as pd
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+
+# Load the trained model
+model_filename = "models/loan_prediction_model.joblib"
+model = joblib.load(model_filename)
 
 # MongoDB connection
 client = MongoClient("mongodb://localhost:27017/")
@@ -31,19 +36,6 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID")
 app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET")
 app.config["SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-
-oauth = OAuth(app)
-google = oauth.register(
-    name="google",
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    access_token_url="https://accounts.google.com/o/oauth2/token",
-    authorize_url="https://accounts.google.com/o/oauth2/auth",
-    authorize_params=None,
-    access_token_params=None,
-    refresh_token_url=None,
-    client_kwargs={"scope": "openid profile email"},
-)
 
 # JWT setup
 jwt = JWTManager(app)
@@ -94,7 +86,7 @@ def authorize():
     access_token = create_access_token(identity=str(user["_id"]))
 
     # Redirect to home page after successful login
-    return redirect(url_for("/", token=access_token))
+    return redirect(url_for("home", token=access_token))
 
 
 # Home route (example)
@@ -143,13 +135,40 @@ def get_customers():
     return jsonify(customer_list)
 
 
-# Prediction route (example)
+# Prediction route
 @app.route("/api/predict", methods=["POST"])
-@jwt_required()
 def predict():
     data = request.json
-    prediction = "Approved" if data["ApplicantIncome"] > 5000 else "Rejected"
-    return jsonify({"result": prediction}), 200
+
+    # Prepare the data for prediction
+    input_data = {
+        "ApplicantIncome": data["ApplicantIncome"],
+        "CoapplicantIncome": data["CoapplicantIncome"],
+        "LoanAmount": data["LoanAmount"],
+        "Loan_Amount_Term": data["Loan_Amount_Term"],
+        "Credit_History": data["Credit_History"],
+        "Gender": data["Gender"],
+        "Married": data["Married"],
+        "Dependents": data["Dependents"],
+        "Education": data["Education"],
+        "Self_Employed": data["Self_Employed"],
+        "Property_Area": data["Property_Area"],
+    }
+
+    # Convert input_data into a DataFrame
+    input_df = pd.DataFrame([input_data])
+
+    # One-hot encode categorical features
+    input_df_encoded = pd.get_dummies(input_df, drop_first=True)
+
+    # Make prediction using the loaded model
+    prediction = model.predict(input_df_encoded)
+
+    # Return the prediction result
+    result = (
+        "Approved" if prediction[0] == 1 else "Rejected"
+    )  # Adjust based on your target encoding
+    return jsonify({"result": result}), 200
 
 
 if __name__ == "__main__":
