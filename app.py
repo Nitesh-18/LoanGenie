@@ -158,23 +158,48 @@ def predict():
     # Convert input_data into a DataFrame
     input_df = pd.DataFrame([input_data])
 
+    # Specify the order of columns (match the model's input_columns)
+    input_columns = [
+        "ApplicantIncome",
+        "CoapplicantIncome",
+        "LoanAmount",
+        "Loan_Amount_Term",
+        "Credit_History",
+        "Gender",
+        "Married",
+        "Dependents",
+        "Education",
+        "Self_Employed",
+        "Property_Area",
+    ]
+
+    input_df = input_df[input_columns]
+
+    # Load the encoded columns used during training
+    encoded_columns = joblib.load("models/encoded_columns.pkl")
+
     # One-hot encode categorical features
     input_df_encoded = pd.get_dummies(input_df, drop_first=True)
 
-    # Align the input columns with the model's expected columns
-    missing_cols = set(encoded_columns) - set(input_df_encoded.columns)
-    for col in missing_cols:
-        input_df_encoded[col] = 0  # Add missing columns with 0s
+    # Ensure the input_df_encoded has the same columns as the model's training data
+    for col in encoded_columns:
+        if col not in input_df_encoded.columns:
+            input_df_encoded[col] = 0  # Add missing columns with default 0 values
 
-    # Ensure the column order matches the model's training
+    # Reorder columns to match the training set
     input_df_encoded = input_df_encoded[encoded_columns]
+
+    # Print debug information about the input
+    print("Encoded Input DataFrame:")
+    print(input_df_encoded.head())  # Debug print to check encoded input
 
     # Make prediction using the loaded model
     prediction = model.predict(input_df_encoded)
+    print(prediction)
 
     # Return the prediction result
     result = (
-        "Approved" if prediction[0] == 1 else "Rejected"
+        "Approved" if prediction[0] == 'Y' else "Rejected"
     )  # Adjust based on your target encoding
     return jsonify({"result": result}), 200
 
