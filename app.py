@@ -19,9 +19,9 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Load the trained model
-model_filename = "models/loan_prediction_model.joblib"
-model = joblib.load(model_filename)
+# Load the trained model and encoded column names
+model = joblib.load("models/loan_approval_model.pkl")
+encoded_columns = joblib.load("models/encoded_columns.pkl")  # Add this line
 
 # MongoDB connection
 client = MongoClient("mongodb://localhost:27017/")
@@ -160,6 +160,14 @@ def predict():
 
     # One-hot encode categorical features
     input_df_encoded = pd.get_dummies(input_df, drop_first=True)
+
+    # Align the input columns with the model's expected columns
+    missing_cols = set(encoded_columns) - set(input_df_encoded.columns)
+    for col in missing_cols:
+        input_df_encoded[col] = 0  # Add missing columns with 0s
+
+    # Ensure the column order matches the model's training
+    input_df_encoded = input_df_encoded[encoded_columns]
 
     # Make prediction using the loaded model
     prediction = model.predict(input_df_encoded)
