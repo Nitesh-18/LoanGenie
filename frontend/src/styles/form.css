@@ -1,26 +1,25 @@
 /* src/styles/form.css */
 .input {
-    @apply block w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-white;
-    transition: all 0.3s ease-in-out;
-  }
-  
-  .input:hover {
-    @apply bg-blue-50;
-  }
-  
-  .btn {
-    @apply w-full py-2 px-4 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300;
-  }
-  
-
-  /* src/styles/form.css */
-input, .btn {
+  @apply block w-full px-4 py-3 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-white;
   transition: all 0.3s ease-in-out;
 }
 
-input:hover, .btn:hover {
+.input:hover {
+  @apply bg-blue-100;
+}
+
+.btn {
+  @apply w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300;
+}
+
+.btn:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+input,
+.btn {
+  transition: all 0.3s ease-in-out;
 }
 
 .hero-video {
@@ -40,11 +39,19 @@ input:hover, .btn:hover {
   text-align: center;
 }
 
-.hero-section h1, .hero-section p {
+.hero-section h1,
+.hero-section p {
   animation: fadeIn 2s ease-in-out;
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

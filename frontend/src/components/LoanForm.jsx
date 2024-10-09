@@ -68,15 +68,12 @@ const LoanForm = ({ onSubmit }) => {
     <animated.div
       id="loan-form"
       style={fadeInProps}
-      className="max-w-2xl mx-auto mt-8 p-8 bg-white rounded-lg shadow-md"
+      className="max-w-4xl mx-auto mt-12 p-10 bg-white rounded-lg shadow-lg"
     >
-      <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+      <h2 className="text-4xl font-semibold text-gray-800 mb-8 text-center">
         Loan Approval Prediction
       </h2>
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-2 gap-6 space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column */}
         <div>
           <input
@@ -187,17 +184,19 @@ const LoanForm = ({ onSubmit }) => {
           </select>
         </div>
 
-        <div className="col-span-2">
+        <div className="col-span-1 md:col-span-2">
           <animated.button type="submit" className="btn w-full">
             Predict
           </animated.button>
         </div>
 
         {result && (
-          <p className="col-span-2 mt-4 text-lg font-bold text-center">{`Prediction Result: ${result}`}</p>
+          <p className="col-span-1 md:col-span-2 mt-4 text-xl font-bold text-center">
+            {`Prediction Result: ${result}`}
+          </p>
         )}
         {error && (
-          <p className="col-span-2 mt-4 text-lg font-bold text-red-600 text-center">
+          <p className="col-span-1 md:col-span-2 mt-4 text-xl font-bold text-red-600 text-center">
             {error}
           </p>
         )}

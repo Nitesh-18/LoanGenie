@@ -3,8 +3,13 @@ import React, { useState } from "react";
 import LoanForm from "./components/LoanForm";
 import Navbar from "./components/Navbar";
 import VideoHero from "./components/VideoHero";
-import LoginSignup from "./components/LoginSignup"; // Import your LoginSignup component
-import { Routes, Route } from "react-router-dom"; // Import Routes and Route
+import LoginSignup from "./components/LoginSignup";
+import Footer from "./components/Footer";
+import FeaturesSection from "./components/FeaturesSection";
+import Testimonials from "./components/Testimonials";
+import FAQSection from "./components/FAQSection";
+import CallToAction from "./components/CallToAction";
+import { Routes, Route } from "react-router-dom";
 import { useSpring, animated } from "react-spring";
 
 const App = () => {
@@ -20,7 +25,6 @@ const App = () => {
     setResult(data.result);
   };
 
-  // Spring animation for scroll transition of the form
   const formFadeProps = useSpring({
     opacity: 1,
     transform: "translateY(0)",
@@ -30,24 +34,29 @@ const App = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-200">
+    <div className="min-h-screen bg-gray-200 flex flex-col justify-between">
       <Navbar />
       <Routes>
         <Route
           path="/"
           element={
-            <animated.div
-              style={formFadeProps} // Apply your animated styles here
-              className="w-full py-12" // Use w-full for full width
-            >
+            <>
               <VideoHero />
-              <LoanForm onSubmit={handleFormSubmit} />
-            </animated.div>
+              <div className="min-h-screen flex items-center justify-center">
+                <animated.div style={formFadeProps} className="w-full py-12">
+                  <LoanForm onSubmit={handleFormSubmit} />
+                </animated.div>
+              </div>
+              <FeaturesSection />  {/* Add Features Section */}
+              <Testimonials />      {/* Add Testimonials */}
+              <FAQSection />        {/* Add FAQ Section */}
+              <CallToAction />      {/* Add Call to Action */}
+            </>
           }
         />
-        <Route path="/login" element={<LoginSignup />} /> {/* Login route */}
-        {/* Add other routes as needed */}
+        <Route path="/login" element={<LoginSignup />} />
       </Routes>
+      <Footer /> {/* Add Footer */}
     </div>
   );
 };
