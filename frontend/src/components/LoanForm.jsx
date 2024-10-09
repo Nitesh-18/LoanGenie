@@ -1,9 +1,9 @@
 // src/components/LoanForm.jsx
 import React, { useState, useEffect } from "react";
 import { useSpring, animated } from "react-spring";
-import "../styles/form.css";
+import "../styles/form.css"; // Make sure this contains necessary styles
 
-const LoanForm = () => {
+const LoanForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     ApplicantIncome: "",
     CoapplicantIncome: "",
@@ -21,6 +21,7 @@ const LoanForm = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  // Spring animation effect for form
   const [fadeInProps, setFadeInProps] = useSpring(() => ({
     opacity: 0,
     transform: "translateY(50px)",
@@ -57,8 +58,7 @@ const LoanForm = () => {
     setError(null); // Reset previous error
 
     try {
-      const predictionResult = await submitLoanPrediction(formData);
-      setResult(predictionResult.result);
+      await onSubmit(formData);
     } catch (err) {
       setError("Failed to submit the form. Please try again.");
     }
@@ -68,130 +68,136 @@ const LoanForm = () => {
     <animated.div
       id="loan-form"
       style={fadeInProps}
-      className="max-w-lg mx-auto mt-8 p-6 bg-white rounded-lg shadow-md"
+      className="max-w-2xl mx-auto mt-8 p-8 bg-white rounded-lg shadow-md"
     >
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+      <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
         Loan Approval Prediction
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="number"
-          name="ApplicantIncome"
-          value={formData.ApplicantIncome}
-          onChange={handleChange}
-          placeholder="Applicant Income"
-          className="input"
-          required
-        />
-        <input
-          type="number"
-          name="CoapplicantIncome"
-          value={formData.CoapplicantIncome}
-          onChange={handleChange}
-          placeholder="Coapplicant Income"
-          className="input"
-          required
-        />
-        <input
-          type="number"
-          name="LoanAmount"
-          value={formData.LoanAmount}
-          onChange={handleChange}
-          placeholder="Loan Amount"
-          className="input"
-          required
-        />
-        <input
-          type="number"
-          name="Loan_Amount_Term"
-          value={formData.Loan_Amount_Term}
-          onChange={handleChange}
-          placeholder="Loan Amount Term (months)"
-          className="input"
-          required
-        />
-        <input
-          type="text"
-          name="Credit_History"
-          value={formData.Credit_History}
-          onChange={handleChange}
-          placeholder="Credit History (0 or 1)"
-          className="input"
-          required
-        />
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-2 gap-6 space-y-4"
+      >
+        {/* Left Column */}
+        <div>
+          <input
+            type="number"
+            name="ApplicantIncome"
+            value={formData.ApplicantIncome}
+            onChange={handleChange}
+            placeholder="Applicant Income"
+            className="input"
+            required
+          />
+          <input
+            type="number"
+            name="LoanAmount"
+            value={formData.LoanAmount}
+            onChange={handleChange}
+            placeholder="Loan Amount"
+            className="input"
+            required
+          />
+          <select
+            name="Gender"
+            value={formData.Gender}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+          <select
+            name="Dependents"
+            value={formData.Dependents}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="0">No Dependents</option>
+            <option value="1">1 Dependent</option>
+            <option value="2">2 Dependents</option>
+            <option value="3">3 or More Dependents</option>
+          </select>
+          <select
+            name="Self_Employed"
+            value={formData.Self_Employed}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="No">Not Self Employed</option>
+            <option value="Yes">Self Employed</option>
+          </select>
+        </div>
 
-        <select
-          name="Gender"
-          value={formData.Gender}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
+        {/* Right Column */}
+        <div>
+          <input
+            type="number"
+            name="CoapplicantIncome"
+            value={formData.CoapplicantIncome}
+            onChange={handleChange}
+            placeholder="Coapplicant Income"
+            className="input"
+            required
+          />
+          <input
+            type="number"
+            name="Loan_Amount_Term"
+            value={formData.Loan_Amount_Term}
+            onChange={handleChange}
+            placeholder="Loan Amount Term (months)"
+            className="input"
+            required
+          />
+          <input
+            type="text"
+            name="Credit_History"
+            value={formData.Credit_History}
+            onChange={handleChange}
+            placeholder="Credit History (0 or 1)"
+            className="input"
+            required
+          />
+          <select
+            name="Married"
+            value={formData.Married}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="No">Not Married</option>
+            <option value="Yes">Married</option>
+          </select>
+          <select
+            name="Education"
+            value={formData.Education}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="Graduate">Graduate</option>
+            <option value="NotGraduate">Not Graduate</option>
+          </select>
+          <select
+            name="Property_Area"
+            value={formData.Property_Area}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="Urban">Urban</option>
+            <option value="Semiurban">Semiurban</option>
+            <option value="Rural">Rural</option>
+          </select>
+        </div>
 
-        <select
-          name="Married"
-          value={formData.Married}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="No">Not Married</option>
-          <option value="Yes">Married</option>
-        </select>
-
-        <select
-          name="Dependents"
-          value={formData.Dependents}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="0">No Dependents</option>
-          <option value="1">1 Dependent</option>
-          <option value="2">2 Dependents</option>
-          <option value="3">3 or More Dependents</option>
-        </select>
-
-        <select
-          name="Education"
-          value={formData.Education}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="Graduate">Graduate</option>
-          <option value="NotGraduate">Not Graduate</option>
-        </select>
-
-        <select
-          name="Self_Employed"
-          value={formData.Self_Employed}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-
-        <select
-          name="Property_Area"
-          value={formData.Property_Area}
-          onChange={handleChange}
-          className="input"
-        >
-          <option value="Urban">Urban</option>
-          <option value="Semiurban">Semiurban</option>
-          <option value="Rural">Rural</option>
-        </select>
-
-        <animated.button type="submit" className="btn">
-          Predict
-        </animated.button>
+        <div className="col-span-2">
+          <animated.button type="submit" className="btn w-full">
+            Predict
+          </animated.button>
+        </div>
 
         {result && (
-          <p className="mt-4 text-lg font-bold text-center">{`Prediction Result: ${result}`}</p>
+          <p className="col-span-2 mt-4 text-lg font-bold text-center">{`Prediction Result: ${result}`}</p>
         )}
         {error && (
-          <p className="mt-4 text-lg font-bold text-red-600 text-center">
+          <p className="col-span-2 mt-4 text-lg font-bold text-red-600 text-center">
             {error}
           </p>
         )}
