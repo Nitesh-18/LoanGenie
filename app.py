@@ -13,11 +13,15 @@ from dotenv import load_dotenv
 import os
 import joblib
 import pandas as pd
+from flask_cors import CORS
+
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 # Load the trained model and encoded column names
 model = joblib.load("models/loan_approval_model.pkl")
