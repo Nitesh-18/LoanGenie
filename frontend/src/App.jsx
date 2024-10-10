@@ -9,6 +9,7 @@ import FeaturesSection from "./components/FeaturesSection";
 import Testimonials from "./components/Testimonials";
 import FAQSection from "./components/FAQSection";
 import CallToAction from "./components/CallToAction";
+import ApplyLoan from "./components/ApplyLoan"; // Importing the ApplyLoan component
 import { Routes, Route } from "react-router-dom";
 import { useSpring, animated } from "react-spring";
 
@@ -67,6 +68,7 @@ const App = () => {
             </>
           }
         />
+        <Route path="/apply-loan" element={<ApplyLoan />} /> 
         <Route path="/login" element={<LoginSignup />} />
       </Routes>
       <Footer />

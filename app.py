@@ -33,6 +33,8 @@ client = MongoClient("mongodb://localhost:27017/")
 db = client.loan_db
 customers = db.customers
 users = db.users  # New collection for users
+loan_types = db.loan_types  # Collection for loan types
+banks = db.banks  # Collection for banks
 
 # JWT configuration - loaded from .env
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
@@ -59,7 +61,7 @@ google = oauth.register(
     redirect_uri="http://127.0.0.1:5000/authorize",
     client_kwargs={
         "scope": "openid profile email",
-        'issuer': 'https://accounts.google.com',
+        "issuer": "https://accounts.google.com",
         "userinfo_endpoint": "https://openidconnect.googleapis.com/v1/userinfo",
     },
 )
@@ -190,6 +192,59 @@ def get_customers():
             )  # Convert ObjectId to string for JSON serialization
             customer_list.append(customer)
         return jsonify(customer_list)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/add_loan_types", methods=["POST"])
+def add_loan_types():
+    loan_data = [
+        {"type": "Personal Loan", "interest_rate": 10.5},
+        {"type": "Home Loan", "interest_rate": 7.5},
+        {"type": "Car Loan", "interest_rate": 8.0},
+        {"type": "Education Loan", "interest_rate": 9.0},
+        {"type": "Business Loan", "interest_rate": 11.0},
+        # Add more loan types as needed
+    ]
+    loan_types.insert_many(loan_data)
+    return jsonify({"message": "Loan types added successfully!"}), 201
+
+
+@app.route("/add_banks", methods=["POST"])
+def add_banks():
+    bank_data = [
+        {"name": "SBI", "interest_rate": 10.0},
+        {"name": "YES BANK", "interest_rate": 7.2},
+        {"name": "KOTAK", "interest_rate": 9.1},
+        {"name": "BOI", "interest_rate": 8.5},
+        # Add more banks as needed
+    ]
+    banks.insert_many(bank_data)
+    return jsonify({"message": "Banks added successfully!"}), 201
+
+
+@app.route("/loan_types", methods=["GET"])
+# @jwt_required()
+def get_loan_types():
+    try:
+        loan_list = []
+        for loan in loan_types.find():
+            loan["_id"] = str(loan["_id"])  # Convert ObjectId to string
+            loan_list.append(loan)
+        return jsonify(loan_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/banks", methods=["GET"])
+# @jwt_required()
+def get_banks():
+    try:
+        bank_list = []
+        for bank in banks.find():
+            bank["_id"] = str(bank["_id"])  # Convert ObjectId to string
+            bank_list.append(bank)
+        return jsonify(bank_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
