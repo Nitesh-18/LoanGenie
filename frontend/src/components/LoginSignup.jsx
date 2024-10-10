@@ -26,21 +26,21 @@ const LoginSignup = () => {
         <div className="space-y-6">
           <div className="flex flex-col items-center">
             <p className="text-gray-700 mb-2">New User</p>
-            <Link
-              to="/login"
+            <a
+              href="http://127.0.0.1:5000/login"  // Use href instead of Link for external redirects
               className="bg-red-500 text-white py-3 px-6 rounded w-full text-center hover:bg-red-600 transition duration-200 ease-in-out"
             >
               Sign Up with Google
-            </Link>
+            </a>
           </div>
           <div className="flex flex-col items-center">
             <p className="text-gray-700 mb-2">Existing User</p>
-            <Link
-              to="/auth/google/login"
+            <a
+              href="http://127.0.0.1:5000/login"  // Same route for both Sign Up and Login
               className="bg-blue-500 text-white py-3 px-6 rounded w-full text-center hover:bg-blue-600 transition duration-200 ease-in-out"
             >
               Login with Google
-            </Link>
+            </a>
           </div>
         </div>
       </div>

@@ -10,9 +10,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from dotenv import load_dotenv
+from authlib.integrations.flask_client import OAuth  # Import OAuth from Authlib
 import os
 import joblib
 import pandas as pd
+import traceback
 from flask_cors import CORS
 
 
@@ -21,7 +23,6 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
 
 # Load the trained model and encoded column names
 model = joblib.load("models/loan_approval_model.pkl")
@@ -43,6 +44,26 @@ app.config["SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
 # JWT setup
 jwt = JWTManager(app)
+
+# OAuth initialization
+oauth = OAuth(app)
+google = oauth.register(
+    name="google",
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    access_token_url="https://accounts.google.com/o/oauth2/token",
+    authorize_url="https://accounts.google.com/o/oauth2/auth",
+    authorize_params=None,
+    authorize_callback_url="http://127.0.0.1:5000/authorize",
+    redirect_uri="http://127.0.0.1:5000/authorize",
+    client_kwargs={
+        "scope": "openid profile email",
+        'issuer': 'https://accounts.google.com',
+        "userinfo_endpoint": "https://openidconnect.googleapis.com/v1/userinfo",
+    },
+)
+
 
 # Flask-Login setup
 login_manager = LoginManager()
@@ -79,9 +100,20 @@ def login():
 @app.route("/authorize")
 def authorize():
     try:
+        # Get the access token from Google
         token = google.authorize_access_token()
+
+        # Manually parse and validate the ID token
         user_info = google.parse_id_token(token)
 
+        # # Check the "iss" claim manually
+        # if user_info.get("iss") not in [
+        #     "https://accounts.google.com",
+        #     "accounts.google.com",
+        # ]:
+        #     return jsonify({"error": "Invalid claim: incorrect 'iss'"}), 400
+
+        # Proceed if the 'iss' claim is valid
         user = users.find_one({"email": user_info["email"]})
 
         # If the user does not exist, create a new user
@@ -100,6 +132,7 @@ def authorize():
         # Redirect to home page after successful login
         return redirect(url_for("home", token=access_token))
     except Exception as e:
+        traceback.print_exc()  # This will print the full traceback in your terminal
         return jsonify({"error": str(e)}), 500
 
 
